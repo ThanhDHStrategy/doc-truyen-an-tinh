@@ -1,0 +1,52 @@
+<!doctype html>
+<html lang="vi">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <meta name="theme-color" content="#fbf7ed">
+  <title>TA CHỈ MUỐN AN TĨNH CHƠI GAME</title>
+  <style>
+    *{box-sizing:border-box}html{scroll-behavior:smooth}body{margin:0;font-family:Georgia,"Times New Roman",serif;background:#fbf7ed;color:#28251f}
+    body.dark{background:#171714;color:#e9e0ce}.dark{--paper:#171714;--ink:#e9e0ce;--muted:#ada392;--line:#3c3831;--accent:#da806b}
+    body{--paper:#fbf7ed;--ink:#28251f;--muted:#746c60;--line:#d9cfbc;--accent:#9b3e2e}
+    button{font:inherit}.top{position:sticky;top:0;z-index:10;height:70px;display:grid;grid-template-columns:48px 1fr 48px;align-items:center;padding:0 12px;border-bottom:1px solid var(--line);background:color-mix(in srgb,var(--paper) 92%,transparent);backdrop-filter:blur(12px)}
+    .brand{text-align:center;min-width:0}.brand span{display:block;color:var(--accent);font:700 10px Arial;letter-spacing:.2em;margin-bottom:5px}.brand strong{display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-size:14px}
+    .icon{width:44px;height:44px;border:0;border-radius:50%;background:transparent;color:var(--ink);font:24px Arial}
+    article{width:min(calc(100% - 32px),720px);margin:auto;padding:52px 0}.eyebrow{text-align:center;color:var(--accent);font:700 11px Arial;letter-spacing:.2em}
+    h1{text-align:center;font-size:clamp(30px,9vw,48px);font-weight:500}.orn{display:flex;align-items:center;gap:12px;width:150px;margin:22px auto 36px;color:var(--accent)}.orn:before,.orn:after{content:"";flex:1;height:1px;background:var(--line)}
+    .pending{display:grid;grid-template-columns:38px 1fr;gap:14px;padding:20px;border:1px solid var(--line);border-left:3px solid var(--accent)}.pending b,.label{font:700 11px Arial;letter-spacing:.1em}.pending p{color:var(--muted);line-height:1.65}
+    .sample{margin-top:38px}.label{text-align:center;color:var(--muted)}.story{line-height:1.85;text-align:justify;font-size:19px}
+    .system{margin:32px 0;padding:20px;border:1px solid var(--accent);box-shadow:inset 0 0 0 4px var(--paper),inset 0 0 0 5px var(--line)}.system h2{width:max-content;margin:-30px auto 16px;padding:7px 14px;background:var(--paper);color:var(--accent);font:700 12px Arial;letter-spacing:.15em}.system div{display:grid;grid-template-columns:100px 1fr;gap:10px;padding:10px 4px;border-top:1px dotted var(--line)}.system b{color:var(--muted);font:700 10px Arial}
+    .tools,.nav{display:flex;align-items:center;justify-content:center;gap:10px}.tools{margin:36px 0}.tools button{padding:9px 14px;border:1px solid var(--line);border-radius:6px;background:transparent;color:var(--ink)}.tools span{color:var(--muted);font:12px Arial}
+    .nav{justify-content:space-between;padding-top:20px;border-top:1px solid var(--line)}.nav button{border:0;background:transparent;color:var(--accent);font-weight:700}.nav button:disabled{opacity:.3}.nav span{font:12px Arial;color:var(--muted)}
+    .drawer{position:fixed;inset:0 auto 0 0;z-index:30;width:min(88vw,360px);padding:22px 18px;background:var(--paper);color:var(--ink);transform:translateX(-102%);transition:.25s;overflow:auto;box-shadow:8px 0 30px #0004}.drawer.open{transform:none}.drawer-head{display:flex;justify-content:space-between;align-items:center;padding-bottom:18px;border-bottom:1px solid var(--line)}.drawer-head b{font:20px Arial}.chapter{display:grid;grid-template-columns:38px 1fr;width:100%;padding:13px 10px;border:0;border-bottom:1px solid var(--line);background:transparent;color:var(--ink);text-align:left}.chapter.active{border-left:2px solid var(--accent);background:color-mix(in srgb,var(--accent) 8%,transparent)}.chapter span{font:12px Arial;color:var(--muted)}.chapter b,.chapter small{display:block}.chapter small{color:var(--muted);font:11px Arial;margin-top:3px}
+    .shade{position:fixed;inset:0;z-index:20;background:#0007;border:0;width:100%;display:none}.shade.open{display:block}
+  </style>
+</head>
+<body>
+  <header class="top"><button class="icon" id="menu" aria-label="Mở mục lục">☰</button><div class="brand"><span>THƯ VIỆN TRUYỆN</span><strong>TA CHỈ MUỐN AN TĨNH CHƠI GAME</strong></div><button class="icon" id="theme" aria-label="Đổi chế độ màu">☾</button></header>
+  <aside class="drawer" id="drawer"><div class="drawer-head"><b>MỤC LỤC · 35 CHƯƠNG</b><button class="icon" id="close">×</button></div><nav id="chapters"></nav></aside><button class="shade" id="shade" aria-label="Đóng mục lục"></button>
+  <article><p class="eyebrow" id="eyebrow"></p><h1 id="title"></h1><div class="orn">◆</div>
+    <section class="pending"><div>波</div><div><b>CHƯA CÓ BẢN CHÉP LỜI ĐÃ KIỂM CHỨNG</b><p>Nội dung chương sẽ xuất hiện tại đây sau khi âm thanh được chuyển thành văn bản và xác định đúng ranh giới chương.</p></div></section>
+    <section class="sample"><p class="label">MẪU TRÌNH BÀY SAU KHI XỬ LÝ</p><p class="story" id="story">Lời kể được biên tập thành câu tiếng Việt rõ nghĩa, giữ nguyên nội dung gốc. TÊN RIÊNG được viết hoa nhất quán và tên “Kỹ Năng” được đặt trong ngoặc kép.</p>
+      <div class="system"><h2>✦ HỆ THỐNG ✦</h2><div><b>THÔNG BÁO</b><span>Nội dung do HỆ THỐNG công bố</span></div><div><b>KỸ NĂNG</b><span>“Tên Kỹ Năng”</span></div><div><b>TRẠNG THÁI</b><span>Thông số hoặc hiệu ứng</span></div></div>
+    </section>
+    <div class="tools"><button id="smaller">A−</button><span id="size">19px</span><button id="larger">A+</button></div>
+    <footer class="nav"><button id="prev">← Chương trước</button><span id="progress"></span><button id="next">Chương sau →</button></footer>
+  </article>
+  <script>
+    let current=+(localStorage.getItem("chapter")||1),font=19;
+    const $=id=>document.getElementById(id),drawer=$("drawer"),shade=$("shade");
+    function render(){
+      $("eyebrow").textContent=`TẬP 1 · CHƯƠNG ${String(current).padStart(2,"0")}`;$("title").textContent=`Chương ${current}`;$("progress").textContent=`${current} / 35`;
+      $("prev").disabled=current===1;$("next").disabled=current===35;localStorage.setItem("chapter",current);
+      document.querySelectorAll(".chapter").forEach((el,i)=>el.classList.toggle("active",i+1===current));
+    }
+    for(let i=1;i<=35;i++){const b=document.createElement("button");b.className="chapter";b.innerHTML=`<span>${String(i).padStart(2,"0")}</span><div><b>Chương ${i}</b><small>Chờ bản chép lời</small></div>`;b.onclick=()=>{current=i;drawer.classList.remove("open");shade.classList.remove("open");render();scrollTo(0,0)};$("chapters").appendChild(b)}
+    $("menu").onclick=()=>{drawer.classList.add("open");shade.classList.add("open")};$("close").onclick=$("shade").onclick=()=>{drawer.classList.remove("open");shade.classList.remove("open")};
+    $("prev").onclick=()=>{if(current>1){current--;render();scrollTo(0,0)}};$("next").onclick=()=>{if(current<35){current++;render();scrollTo(0,0)}};
+    $("smaller").onclick=()=>{font=Math.max(16,font-1);$("story").style.fontSize=font+"px";$("size").textContent=font+"px"};$("larger").onclick=()=>{font=Math.min(26,font+1);$("story").style.fontSize=font+"px";$("size").textContent=font+"px"};
+    if(localStorage.getItem("theme")==="dark"){document.body.classList.add("dark");$("theme").textContent="☀"}$("theme").onclick=()=>{document.body.classList.toggle("dark");const d=document.body.classList.contains("dark");$("theme").textContent=d?"☀":"☾";localStorage.setItem("theme",d?"dark":"light")};render();
+  </script>
+</body>
+</html>
