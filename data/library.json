@@ -5,7 +5,7 @@
     "author": "Chưa đủ dữ liệu để xác minh",
     "genre": "Võng Du",
     "status": "Đang cập nhật",
-    "chapterCount": 64,
+    "chapterCount": 65,
     "initials": "AT",
     "color": "linear-gradient(145deg, #3f5167, #18232f)",
     "description": "Bản truyện chữ được chuyển từ video, chia theo từng chương và biên tập bằng tiếng Việt rõ ràng.",
@@ -72,7 +72,8 @@
       "61": "Tư Cách",
       "62": "Mưa Gió Nổi Lên",
       "63": "Cho Ngươi Ba Tháng",
-      "64": "Mời"
+      "64": "Mời",
+      "65": "Trưởng Thành"
     }
   }
 ]
