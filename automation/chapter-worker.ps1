@@ -99,11 +99,12 @@ function Get-RepositoryState {
 function Get-LockState {
     $lock = Read-JsonFile $lockPath
     if (-not $lock) { return $null }
-    $started = [DateTimeOffset]::Parse($lock.startedAt)
-    $ageMinutes = ([DateTimeOffset]::UtcNow - $started).TotalMinutes
+    $leaseTimestamp = if ($lock.updatedAt) { $lock.updatedAt } else { $lock.startedAt }
+    $lastActivity = [DateTimeOffset]::Parse($leaseTimestamp)
+    $ageMinutes = ([DateTimeOffset]::UtcNow - $lastActivity).TotalMinutes
     [ordered]@{
         data = $lock
-        ageMinutes = [Math]::Round($ageMinutes, 2)
+        inactiveMinutes = [Math]::Round($ageMinutes, 2)
         valid = ($ageMinutes -lt $LeaseMinutes)
     }
 }

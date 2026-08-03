@@ -40,7 +40,7 @@ $runId = [Guid]::NewGuid().ToString('N')
 - Mất tín hiệu âm thanh thật: ghi blocker, không chạy ASR lặp lại.
 - GitHub Pages chưa cập nhật: giữ khóa ở `DEPLOYING`, không tạo lại chương.
 
-Khóa hết hạn sau 20 phút. Khóa hết hạn chỉ được thay thế sau khi đã đọc lại repository và xác nhận không có chương đang được commit hoặc triển khai.
+Khóa hết hạn sau 20 phút không có cập nhật giai đoạn. Mỗi lần chạy `Stage` sẽ gia hạn khóa. Khóa hết hạn chỉ được thay thế sau khi đã đọc lại repository và xác nhận không có chương đang được commit hoặc triển khai.
 
 ## Thông báo
 
