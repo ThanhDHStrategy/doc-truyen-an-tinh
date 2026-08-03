@@ -20,6 +20,18 @@ Không ghi số chương hiện tại vào lời nhắc lịch. Chương kế ti
 5. Sau khi GitHub Pages trả HTTP 200 và kiểm tra điện thoại đạt yêu cầu, chạy `Complete`.
 6. Chạy `Release`.
 
+## Biên soạn trước trong thời gian triển khai
+
+Sau khi Chương N đã commit, push và khóa chuyển sang `DEPLOYING`, có thể tận dụng thời gian chờ GitHub Pages để chuẩn bị Chương N+1:
+
+1. Chạy `DraftStart` bằng RunId đang sở hữu khóa.
+2. Biên soạn Chương N+1 vào `draftPath` do lệnh trả về.
+3. Xác minh tiêu đề, hai ranh giới, nguồn đối chiếu và HTML.
+4. Chạy `DraftReady` để ghi manifest nháp.
+5. Tiếp tục xác minh Chương N trên GitHub Pages, chạy `Complete` và `Release` như bình thường.
+
+Nháp nằm trong `.automation/drafts/`, không được đưa vào `content/`, không sửa `library.json`, không commit và không push trong chu kỳ của Chương N. Lượt kế tiếp phải đọc manifest, đối chiếu lại repository và ranh giới trước khi sử dụng nháp. Mỗi lượt vẫn chỉ xuất bản tối đa một chương.
+
 Ví dụ:
 
 ```powershell
@@ -27,6 +39,9 @@ $runId = [Guid]::NewGuid().ToString('N')
 .\automation\chapter-worker.ps1 Acquire -RunId $runId
 .\automation\chapter-worker.ps1 Stage -RunId $runId -Stage EDITING
 # Biên tập, kiểm định, commit, push, kiểm tra Pages và điện thoại.
+.\automation\chapter-worker.ps1 DraftStart -RunId $runId
+# Biên soạn chương kế tiếp vào draftPath được trả về.
+.\automation\chapter-worker.ps1 DraftReady -RunId $runId -Title "Tên chương" -StartBoundary "00:00:00" -EndBoundary "00:08:00" -Source "transcript + nguồn đối chiếu"
 .\automation\chapter-worker.ps1 Complete -RunId $runId -Chapter 78 -Commit abc1234
 .\automation\chapter-worker.ps1 Release -RunId $runId
 ```

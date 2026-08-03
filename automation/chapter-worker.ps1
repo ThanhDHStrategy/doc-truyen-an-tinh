@@ -1,7 +1,7 @@
 [CmdletBinding()]
 param(
     [Parameter(Mandatory = $true, Position = 0)]
-    [ValidateSet('Inspect', 'Acquire', 'Stage', 'Complete', 'Release')]
+    [ValidateSet('Inspect', 'Acquire', 'Stage', 'Complete', 'Release', 'DraftStart', 'DraftReady', 'DraftDiscard')]
     [string]$Action,
 
     [string]$RepoPath,
@@ -10,6 +10,10 @@ param(
     [string]$Stage,
     [int]$Chapter,
     [string]$Commit,
+    [string]$Title,
+    [string]$StartBoundary,
+    [string]$EndBoundary,
+    [string]$Source,
     [int]$LeaseMinutes = 20
 )
 
@@ -29,6 +33,8 @@ $libraryPath = Join-Path $RepoPath 'data\library.json'
 $contentPath = Join-Path $RepoPath 'content\ta-chi-muon-an-tinh-choi-game'
 $lockPath = Join-Path $StatePath 'chapter-worker.lock.json'
 $checkpointPath = Join-Path $StatePath 'chapter-checkpoint.json'
+$draftRoot = Join-Path $StatePath 'drafts'
+$draftManifestPath = Join-Path $StatePath 'next-chapter-draft.json'
 
 function Write-JsonResult {
     param([hashtable]$Value)
@@ -114,11 +120,13 @@ switch ($Action) {
         $repo = Get-RepositoryState
         $lock = Get-LockState
         $checkpoint = Read-JsonFile $checkpointPath
+        $draft = Read-JsonFile $draftManifestPath
         Write-JsonResult ([ordered]@{
             decision = if ($lock -and $lock.valid) { 'LOCKED' } elseif (-not $repo.libraryMatchesHtml) { 'BLOCKED_INCONSISTENT_COUNT' } elseif (-not $repo.gitTrackedClean) { 'BLOCKED_GIT_DIRTY' } elseif ($repo.nextFileExists) { 'VERIFY_EXISTING_TARGET' } else { 'READY' }
             repository = $repo
             lock = $lock
             checkpoint = $checkpoint
+            draft = $draft
         })
     }
 
@@ -203,5 +211,82 @@ switch ($Action) {
         if ($lock.runId -ne $RunId) { throw 'RunId does not own the lock.' }
         Remove-Item -LiteralPath $lockPath -Force
         Write-JsonResult ([ordered]@{ released = $true; alreadyAbsent = $false })
+    }
+
+    'DraftStart' {
+        if (-not $RunId) { throw 'DraftStart requires RunId.' }
+        $lock = Read-JsonFile $lockPath
+        if (-not $lock -or $lock.runId -ne $RunId) { throw 'RunId does not own the lock.' }
+        if ($lock.stage -notin @('DEPLOYING', 'DEPLOYING_AND_PREFETCHING')) {
+            throw 'DraftStart is allowed only while the current chapter is deploying.'
+        }
+
+        $draftChapter = [int]$lock.chapter + 1
+        $publicTarget = Join-Path $contentPath ('{0:D4}.html' -f $draftChapter)
+        if (Test-Path -LiteralPath $publicTarget) { throw 'Next public chapter already exists; draft creation is blocked.' }
+        if (-not (Test-Path -LiteralPath $draftRoot)) {
+            New-Item -ItemType Directory -Path $draftRoot -Force | Out-Null
+        }
+        $draftPath = Join-Path $draftRoot ('{0:D4}.html' -f $draftChapter)
+        $existingDraft = Read-JsonFile $draftManifestPath
+        if ($existingDraft -and [int]$existingDraft.chapter -ne $draftChapter) {
+            throw 'A draft for a different chapter already exists.'
+        }
+
+        $manifest = [ordered]@{
+            chapter = $draftChapter
+            status = 'EDITING'
+            draftPath = $draftPath
+            basedOnPublishedChapter = [int]$lock.chapter
+            basedOnCommit = (& git -C $RepoPath rev-parse --short HEAD).Trim()
+            ownerRunId = $RunId
+            createdAt = if ($existingDraft.createdAt) { $existingDraft.createdAt } else { [DateTimeOffset]::UtcNow.ToString('o') }
+            updatedAt = [DateTimeOffset]::UtcNow.ToString('o')
+        }
+        Write-JsonAtomic -Path $draftManifestPath -Value $manifest
+        $lock.stage = 'DEPLOYING_AND_PREFETCHING'
+        $lock.updatedAt = [DateTimeOffset]::UtcNow.ToString('o')
+        Write-JsonAtomic -Path $lockPath -Value $lock
+        Write-JsonResult ([ordered]@{ started = $true; draft = $manifest; lock = $lock })
+    }
+
+    'DraftReady' {
+        if (-not $RunId -or -not $Title -or -not $StartBoundary -or -not $EndBoundary -or -not $Source) {
+            throw 'DraftReady requires RunId, Title, StartBoundary, EndBoundary, and Source.'
+        }
+        $lock = Read-JsonFile $lockPath
+        if (-not $lock -or $lock.runId -ne $RunId) { throw 'RunId does not own the lock.' }
+        $manifest = Read-JsonFile $draftManifestPath
+        if (-not $manifest -or $manifest.ownerRunId -ne $RunId) { throw 'RunId does not own the draft.' }
+        if (-not (Test-Path -LiteralPath $manifest.draftPath)) { throw 'Draft HTML file does not exist.' }
+        $draftHtml = Get-Content -LiteralPath $manifest.draftPath -Raw -Encoding UTF8
+        [xml]("<root>" + $draftHtml + "</root>") | Out-Null
+        if ([string]::IsNullOrWhiteSpace($draftHtml)) { throw 'Draft HTML is empty.' }
+
+        $manifest.status = 'READY'
+        $manifest.title = $Title
+        $manifest.startBoundary = $StartBoundary
+        $manifest.endBoundary = $EndBoundary
+        $manifest.source = $Source
+        $manifest.updatedAt = [DateTimeOffset]::UtcNow.ToString('o')
+        Write-JsonAtomic -Path $draftManifestPath -Value $manifest
+        $lock.updatedAt = [DateTimeOffset]::UtcNow.ToString('o')
+        Write-JsonAtomic -Path $lockPath -Value $lock
+        Write-JsonResult ([ordered]@{ ready = $true; draft = $manifest })
+    }
+
+    'DraftDiscard' {
+        if (-not $RunId) { throw 'DraftDiscard requires RunId.' }
+        $lock = Read-JsonFile $lockPath
+        if ($lock -and $lock.runId -ne $RunId) { throw 'RunId does not own the active lock.' }
+        $manifest = Read-JsonFile $draftManifestPath
+        if ($manifest -and $manifest.ownerRunId -ne $RunId) { throw 'RunId does not own the draft.' }
+        if ($manifest -and (Test-Path -LiteralPath $manifest.draftPath)) {
+            Remove-Item -LiteralPath $manifest.draftPath -Force
+        }
+        if (Test-Path -LiteralPath $draftManifestPath) {
+            Remove-Item -LiteralPath $draftManifestPath -Force
+        }
+        Write-JsonResult ([ordered]@{ discarded = $true })
     }
 }
