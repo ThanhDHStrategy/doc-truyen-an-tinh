@@ -263,11 +263,11 @@ switch ($Action) {
         [xml]("<root>" + $draftHtml + "</root>") | Out-Null
         if ([string]::IsNullOrWhiteSpace($draftHtml)) { throw 'Draft HTML is empty.' }
 
-        $manifest.status = 'READY'
-        $manifest.title = $Title
-        $manifest.startBoundary = $StartBoundary
-        $manifest.endBoundary = $EndBoundary
-        $manifest.source = $Source
+        $manifest | Add-Member -NotePropertyName status -NotePropertyValue 'READY' -Force
+        $manifest | Add-Member -NotePropertyName title -NotePropertyValue $Title -Force
+        $manifest | Add-Member -NotePropertyName startBoundary -NotePropertyValue $StartBoundary -Force
+        $manifest | Add-Member -NotePropertyName endBoundary -NotePropertyValue $EndBoundary -Force
+        $manifest | Add-Member -NotePropertyName source -NotePropertyValue $Source -Force
         $manifest.updatedAt = [DateTimeOffset]::UtcNow.ToString('o')
         Write-JsonAtomic -Path $draftManifestPath -Value $manifest
         $lock.updatedAt = [DateTimeOffset]::UtcNow.ToString('o')
