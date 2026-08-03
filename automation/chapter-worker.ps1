@@ -226,6 +226,10 @@ switch ($Action) {
             break
         }
         if ($lock.runId -ne $RunId) { throw 'RunId does not own the lock.' }
+        $checkpoint = Read-JsonFile $checkpointPath
+        if (-not $checkpoint -or [int]$checkpoint.lastPublishedChapter -lt [int]$lock.chapter) {
+            throw 'The chapter checkpoint is not complete; refusing to release the lock.'
+        }
         Remove-Item -LiteralPath $lockPath -Force
         Write-JsonResult ([ordered]@{ released = $true; alreadyAbsent = $false })
     }
@@ -246,6 +250,20 @@ switch ($Action) {
         }
         $draftPath = Join-Path $draftRoot ('{0:D4}.html' -f $draftChapter)
         $existingDraft = Read-JsonFile $draftManifestPath
+        if ($existingDraft -and [int]$existingDraft.chapter -eq [int]$lock.chapter) {
+            $publishedCurrent = Join-Path $contentPath ('{0:D4}.html' -f [int]$lock.chapter)
+            if (-not (Test-Path -LiteralPath $publishedCurrent) -or -not (Test-Path -LiteralPath $existingDraft.draftPath)) {
+                throw 'The claimed draft cannot be verified against the published chapter.'
+            }
+            $publishedHtml = Get-Content -LiteralPath $publishedCurrent -Raw -Encoding UTF8
+            $claimedHtml = Get-Content -LiteralPath $existingDraft.draftPath -Raw -Encoding UTF8
+            if ($publishedHtml -ne $claimedHtml) {
+                throw 'The published chapter differs from the claimed draft; next draft creation is blocked.'
+            }
+            Remove-Item -LiteralPath $existingDraft.draftPath -Force
+            Remove-Item -LiteralPath $draftManifestPath -Force
+            $existingDraft = $null
+        }
         if ($existingDraft -and [int]$existingDraft.chapter -ne $draftChapter) {
             throw 'A draft for a different chapter already exists.'
         }
