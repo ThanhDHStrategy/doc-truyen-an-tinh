@@ -30,7 +30,7 @@ Sau khi Chương N đã commit, push và khóa chuyển sang `DEPLOYING`, có th
 4. Chạy `DraftReady` để ghi manifest nháp.
 5. Tiếp tục xác minh Chương N trên GitHub Pages, chạy `Complete` và `Release` như bình thường.
 
-Nháp nằm trong `.automation/drafts/`, không được đưa vào `content/`, không sửa `library.json`, không commit và không push trong chu kỳ của Chương N. Lượt kế tiếp phải đọc manifest, đối chiếu lại repository và ranh giới trước khi sử dụng nháp. Mỗi lượt vẫn chỉ xuất bản tối đa một chương.
+Nháp nằm trong `.automation/drafts/`, không được đưa vào `content/`, không sửa `library.json`, không commit và không push trong chu kỳ của Chương N. Khi lượt kế tiếp `Acquire`, bộ điều phối tự chuyển quyền sở hữu bản nháp `READY` đúng số chương sang RunId mới. Lượt mới phải đối chiếu lại repository và ranh giới trước khi sử dụng. Sau khi chương được checkpoint thành công, nháp đã dùng sẽ tự được dọn. Mỗi lượt vẫn chỉ xuất bản tối đa một chương.
 
 Ví dụ:
 

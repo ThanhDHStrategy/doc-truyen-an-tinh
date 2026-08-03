@@ -165,7 +165,17 @@ switch ($Action) {
             Write-JsonResult ([ordered]@{ acquired = $false; decision = 'LOCKED'; lock = $racedLock })
             exit 2
         }
-        Write-JsonResult ([ordered]@{ acquired = $true; decision = 'PROCESS'; lock = $lock; repository = $repo })
+        $claimedDraft = Read-JsonFile $draftManifestPath
+        if ($claimedDraft -and $claimedDraft.status -eq 'READY' -and [int]$claimedDraft.chapter -eq [int]$repo.nextChapter) {
+            $claimedDraft | Add-Member -NotePropertyName ownerRunId -NotePropertyValue $RunId -Force
+            $claimedDraft | Add-Member -NotePropertyName claimedAt -NotePropertyValue ([DateTimeOffset]::UtcNow.ToString('o')) -Force
+            $claimedDraft.updatedAt = [DateTimeOffset]::UtcNow.ToString('o')
+            Write-JsonAtomic -Path $draftManifestPath -Value $claimedDraft
+        }
+        else {
+            $claimedDraft = $null
+        }
+        Write-JsonResult ([ordered]@{ acquired = $true; decision = 'PROCESS'; lock = $lock; repository = $repo; draft = $claimedDraft })
     }
 
     'Stage' {
@@ -198,6 +208,13 @@ switch ($Action) {
             verifiedAt = [DateTimeOffset]::UtcNow.ToString('o')
         }
         Write-JsonAtomic -Path $checkpointPath -Value $checkpoint
+        $completedDraft = Read-JsonFile $draftManifestPath
+        if ($completedDraft -and [int]$completedDraft.chapter -eq $Chapter) {
+            if (Test-Path -LiteralPath $completedDraft.draftPath) {
+                Remove-Item -LiteralPath $completedDraft.draftPath -Force
+            }
+            Remove-Item -LiteralPath $draftManifestPath -Force
+        }
         Write-JsonResult ([ordered]@{ completed = $true; checkpoint = $checkpoint })
     }
 
