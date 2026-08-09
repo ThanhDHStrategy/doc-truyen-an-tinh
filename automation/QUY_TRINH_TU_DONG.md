@@ -61,6 +61,17 @@ $runId = [Guid]::NewGuid().ToString('N')
 
 Khóa hết hạn sau 20 phút không có cập nhật giai đoạn. Mỗi lần chạy `Stage` sẽ gia hạn khóa. Khóa hết hạn chỉ được thay thế sau khi đã đọc lại repository và xác nhận không có chương đang được commit hoặc triển khai.
 
+## Kiểm tra tên riêng và ngoại ngữ
+
+Trước khi chuyển sang `COMMITTING`, bắt buộc:
+
+1. Chạy `powershell -ExecutionPolicy Bypass -File automation\validate-names.ps1 -Path <tệp-chương>`.
+2. Đối chiếu mọi tên viết bằng chữ Latin chưa từng xuất hiện với nguyên tác và các chương đã xuất bản.
+3. Tên Trung Quốc phải dùng cách đọc Hán–Việt đã thống nhất; không để pinyin hoặc dạng tiếng Anh do ASR hay nguồn phụ chèn vào.
+4. Tên phương Tây chỉ được giữ nguyên khi nguyên tác xác nhận đó là tên riêng; dùng một cách viết duy nhất trong toàn truyện.
+5. Từ tiếng Anh thông thường phải dịch sang tiếng Việt. Chỉ giữ chữ viết tắt kỹ thuật khi không làm sai nghĩa.
+6. Nếu chưa đủ dữ liệu xác minh tên, dừng ở `VALIDATING`; không tự đoán và không xuất bản.
+
 ## Thông báo
 
 Chỉ thông báo khi:
