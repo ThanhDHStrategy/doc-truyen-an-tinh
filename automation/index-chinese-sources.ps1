@@ -16,13 +16,13 @@ $records = [System.Collections.Generic.List[object]]::new()
 
 Get-ChildItem -LiteralPath $SourceDirectory -Filter '*.txt' -File | Sort-Object Name | ForEach-Object {
     $text = Get-Content -LiteralPath $_.FullName -Raw -Encoding utf8
-    $matches = [regex]::Matches($text, '第\s*(\d+)\s*章\s*([^\r\n]+)')
-    for ($i = 0; $i -lt $matches.Count; $i++) {
-        $start = $matches[$i].Index
-        $end = if ($i + 1 -lt $matches.Count) { $matches[$i + 1].Index } else { $text.Length }
+    $chapterMarkers = [regex]::Matches($text, '第\s*(\d+)\s*章\s*([^\r\n]+)')
+    for ($i = 0; $i -lt $chapterMarkers.Count; $i++) {
+        $start = $chapterMarkers[$i].Index
+        $end = if ($i + 1 -lt $chapterMarkers.Count) { $chapterMarkers[$i + 1].Index } else { $text.Length }
         $body = $text.Substring($start, $end - $start).Trim()
-        $chapter = [int]$matches[$i].Groups[1].Value
-        $title = $matches[$i].Groups[2].Value.Trim()
+        $chapter = [int]$chapterMarkers[$i].Groups[1].Value
+        $title = $chapterMarkers[$i].Groups[2].Value.Trim()
         $records.Add([ordered]@{
             chapter = $chapter
             sourceTitle = $title
