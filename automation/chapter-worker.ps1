@@ -106,7 +106,17 @@ function Get-LockState {
     $lock = Read-JsonFile $lockPath
     if (-not $lock) { return $null }
     $leaseTimestamp = if ($lock.updatedAt) { $lock.updatedAt } else { $lock.startedAt }
-    $lastActivity = [DateTimeOffset]::Parse($leaseTimestamp)
+    if ($leaseTimestamp -match '^\d{2}/\d{2}/\d{4}\s+\d{1,2}:\d{2}:\d{2}\s+(AM|PM)$') {
+        $legacyLocal = [DateTime]::ParseExact(
+            $leaseTimestamp,
+            'dd/MM/yyyy h:mm:ss tt',
+            [Globalization.CultureInfo]::InvariantCulture
+        )
+        $lastActivity = [DateTimeOffset]::new($legacyLocal, [TimeSpan]::FromHours(7))
+    }
+    else {
+        $lastActivity = [DateTimeOffset]::Parse($leaseTimestamp, [Globalization.CultureInfo]::InvariantCulture)
+    }
     $ageMinutes = ([DateTimeOffset]::UtcNow - $lastActivity).TotalMinutes
     [ordered]@{
         data = $lock
