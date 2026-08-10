@@ -14,7 +14,8 @@ if (-not $SourceDirectory) {
 }
 $records = @()
 
-Get-ChildItem -LiteralPath $SourceDirectory -Filter '*.txt' -File | Sort-Object Name | ForEach-Object {
+foreach ($sourceFile in @(Get-ChildItem -LiteralPath $SourceDirectory -Filter '*.txt' -File | Sort-Object Name)) {
+    $_ = $sourceFile
     $text = Get-Content -LiteralPath $_.FullName -Raw -Encoding utf8
     $chapterMarkers = [regex]::Matches($text, '第\s*(\d+)\s*章\s*([^\r\n]+)')
     for ($i = 0; $i -lt $chapterMarkers.Count; $i++) {
