@@ -1,12 +1,16 @@
 [CmdletBinding()]
 param(
-    [string]$SourceDirectory = 'C:\Users\nhimn\Documents\APP Đọc truyện Offline\output\transcribe\source-docs\ta-chi-muon-an-tinh-choi-game',
+    [string]$SourceDirectory,
     [string]$OutputPath
 )
 
 $ErrorActionPreference = 'Stop'
 if (-not $OutputPath) {
     $OutputPath = Join-Path (Split-Path -Parent $PSScriptRoot) '.automation\source-index.json'
+}
+if (-not $SourceDirectory) {
+    $workspaceRoot = Split-Path -Parent (Split-Path -Parent $PSScriptRoot)
+    $SourceDirectory = Join-Path $workspaceRoot 'output\transcribe\source-docs\ta-chi-muon-an-tinh-choi-game'
 }
 $records = [System.Collections.Generic.List[object]]::new()
 
