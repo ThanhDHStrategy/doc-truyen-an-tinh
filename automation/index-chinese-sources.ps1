@@ -12,7 +12,7 @@ if (-not $SourceDirectory) {
     $workspaceRoot = Split-Path -Parent (Split-Path -Parent $PSScriptRoot)
     $SourceDirectory = Join-Path $workspaceRoot 'output\transcribe\source-docs\ta-chi-muon-an-tinh-choi-game'
 }
-$records = [System.Collections.Generic.List[object]]::new()
+$records = @()
 
 Get-ChildItem -LiteralPath $SourceDirectory -Filter '*.txt' -File | Sort-Object Name | ForEach-Object {
     $text = Get-Content -LiteralPath $_.FullName -Raw -Encoding utf8
@@ -23,14 +23,14 @@ Get-ChildItem -LiteralPath $SourceDirectory -Filter '*.txt' -File | Sort-Object 
         $body = $text.Substring($start, $end - $start).Trim()
         $chapter = [int]$chapterMarkers[$i].Groups[1].Value
         $title = $chapterMarkers[$i].Groups[2].Value.Trim()
-        $records.Add([ordered]@{
+        $records += [pscustomobject]@{
             chapter = $chapter
             sourceTitle = $title
             sourceFile = $_.Name
             characters = $body.Length
             sha256 = ([Convert]::ToHexString([Security.Cryptography.SHA256]::HashData([Text.Encoding]::UTF8.GetBytes($body)))).ToLowerInvariant()
             status = if ($body.Length -ge 300) { 'READY_FOR_TRANSLATION' } else { 'BLOCKED_SHORT_SOURCE' }
-        })
+        }
     }
 }
 
